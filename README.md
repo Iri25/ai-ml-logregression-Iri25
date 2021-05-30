@@ -1,4 +1,4 @@
-ai-ml-logregression-Iri25
+Artificial Intelligence
 
 Developing self-learning systems. Classification problems solved with the method logistic regression. Evaluating the performance of these methods
 
