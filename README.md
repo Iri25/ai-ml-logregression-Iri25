@@ -2,7 +2,7 @@ Artificial Intelligence
 
 Developing self-learning systems. Classification problems solved with the method logistic regression. Evaluating the performance of these methods
 
-It is considered information about breast cancer in women, information extracted from breast ultrasounds (details at https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnosis))) such as:
+It is considered information about breast cancer in women, information extracted from breast ultrasounds (details at https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnosis)) such as:
 
 - Type of malformation identified (benign tissue or malignant tissue)
 
