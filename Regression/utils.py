@@ -61,46 +61,36 @@ def plotPredictionsBrestCancer(feature1, feature2, outputs, realOutputs, compute
 
 # ------------------------------------------------- Plot Iris Flowers -------------------------------------------------
 
-def plotTrainIrisFlowers(trainInputs, trainOutputs):
+def plotTestIrisFlowers1(testInputs, outputTest):
     plt.xlabel("sepal length")
     plt.ylabel("petal length")
-    plt.title("normalised train data")
-    for i in range(len(trainOutputs)):
-        if trainOutputs[i] == "Iris-setosa":
-            plt.plot([trainInputs[i][0]], [trainInputs[i][1]], "ro")
-        if trainOutputs[i] == "Iris-versicolor":
-            plt.plot([trainInputs[i][0]], [trainInputs[i][1]], "go")
-        if trainOutputs[i] == "Iris-virginica":
-            plt.plot([trainInputs[i][0]], [trainInputs[i][1]], "bo")
+    for i in range(len(outputTest)):
+
+        x = testInputs[i][0]
+        y = testInputs[i][1]
+        if outputTest[i] == 0:
+            plt.plot(x, y, 'ro')
+        if outputTest[i] == 1:
+            plt.plot(x, y, "yo")
+        if outputTest[i] == 2:
+            plt.plot(x, y, "go")
+
     plt.show()
 
 
-# max((RLForOne, RLForTwo, RLForThree).predictOneSampleValue) de TestOutputs[i] => correct prediction
-def plotTestIrisFlowers(testInputs, testOutputs, RLForOne, RLForTwo, RLForThree):
+def plotTestIrisFlowers2(testInputs, outputTest, OutputsOne, OutputsTwo, OutputsThree):
     plt.xlabel("sepal length")
     plt.ylabel("petal length")
-    plt.title("normalised test data")
-    for i in range(len(testOutputs)):
+    for i in range(len(outputTest)):
 
-        firstPrediction = RLForOne.predictOneSampleValue(testInputs[i])
-        secondPrediction = RLForTwo.predictOneSampleValue(testInputs[i])
-        thirdPrediction = RLForThree.predictOneSampleValue(testInputs[i])
+        x = testInputs[i][0]
+        y = testInputs[i][1]
 
-        if testOutputs[i] == "Iris-setosa":
-            if firstPrediction > secondPrediction and firstPrediction > thirdPrediction:
-                plt.plot([testInputs[i][0]], [testInputs[i][1]], "r*")
-            else:
-                plt.plot([testInputs[i][0]], [testInputs[i][1]], "ro")
+        if OutputsOne[i] == 1:
+            plt.plot(x, y, 'r*')
+        if OutputsTwo[i] == 1:
+            plt.plot(x, y, "y*")
+        if OutputsThree[i] == 1:
+            plt.plot(x, y, "g*")
 
-        if testOutputs[i] == "Iris-versicolor":
-            if secondPrediction > firstPrediction and secondPrediction > thirdPrediction:
-                plt.plot([testInputs[i][0]], [testInputs[i][1]], "g*")
-            else:
-                plt.plot([testInputs[i][0]], [testInputs[i][1]], "go")
-
-        if testOutputs[i] == "Iris-virginica":
-            if thirdPrediction > secondPrediction and thirdPrediction > firstPrediction:
-                plt.plot([testInputs[i][0]], [testInputs[i][1]], "b*")
-            else:
-                plt.plot([testInputs[i][0]], [testInputs[i][1]], "bo")
     plt.show()
