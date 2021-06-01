@@ -1,23 +1,19 @@
-import matplotlib.pyplot as plt
-import random
 from sklearn.datasets import load_breast_cancer
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn import linear_model
 from sklearn.metrics import accuracy_score
-from statistics import mean, stdev
-
+from statistics import mean
 from Regression.logisticRegression import LogisticRegression
 
-from Regression.utils import plotDataDistributionBreastCancer, plotDataHistogramBreastCancer, \
-    plotClassificationDataBrestCancer, plotPredictionsBrestCancer, plotTrainIrisFlowers, plotTestIrisFlowers
+from Regression.readToFile import splitData, readDataCode, readDataTool
 
-from Regression.readToFile import readDataIrisFlowers
+from Regression.utils import plotTestIrisFlowers2, plotTestIrisFlowers1
 
 
 # ---------------------------------------------------- Brest Cancer ----------------------------------------------------
 
-def normalisation(trainData, testData):
+def normalisationBreastCancer(trainData, testData):
     scalar = StandardScaler()
 
     if not isinstance(trainData[0], list):
@@ -51,6 +47,8 @@ def normalisation(trainData, testData):
 
 
 def runBreastCancer():
+    print("Brest Cancer")
+
     data = load_breast_cancer()
 
     inputs = data['data']
@@ -88,7 +86,7 @@ def runBreastCancer():
     testOutputs = [outputs[i] for i in testSample]
 
     # normalise the features
-    trainInputs, testInputs = normalisation(trainInputs, testInputs)
+    trainInputs, testInputs = normalisationBreastCancer(trainInputs, testInputs)
 
     feature1train = [ex[0] for ex in trainInputs]
     feature2train = [ex[1] for ex in trainInputs]
@@ -109,7 +107,7 @@ def runBreastCancer():
     classifier.fit(trainInputs, trainOutputs)
 
     # parameters of the linear repressor
-    w0, w1, w2 = classifier.intercept_, classifier.coefficient_[0], classifier.coefficient_[1]
+    w0, w1, w2 = classifier.intercept_, classifier.coef_[0], classifier.coef_[1]
     print('\nClassification model brest cancer: y(feat1, feat2) = ', w0, ' + ', w1, ' * feat1 + ', w2, ' * feat2')
 
     # makes predictions for test data (variant 1)
@@ -134,154 +132,137 @@ def runBreastCancer():
     print("Classification error (tool) brest cancer: ", error)
 
 
-runBreastCancer()
+# runBreastCancer()
 
 
 # ---------------------------------------------------- Iris Flowers ----------------------------------------------------
 
-# statistical normalisation (centered around mend and standardisation)
-def statisticalNormalisation(features):
-    # meanValue = sum(features) / len(features)
-    meanValue = mean(features)
-
-    # stdDevValue = (1 / len(features) * sum([ (feat - meanValue) ** 2 for feat in features])) ** 0.5
-    stdDevValue = stdev(features)
-
-    normalisedFeatures = [(feat - meanValue) / stdDevValue for feat in features]
-
-    return meanValue, stdDevValue, normalisedFeatures
+# with code
+def normalisationIrisFlowers(inputs):
+    m = mean(inputs)
+    aux = (1 / len(inputs) * sum([(i - m) ** 2 for i in inputs])) ** 0.5
+    normalised = [(i - m) / aux for i in inputs]
+    return normalised
 
 
-def normaliseTestData(features, meanValue, stdDevValue):
-    return [(feat - meanValue) / stdDevValue for feat in features]
-
-
-def computeError(computedOutputs, testOutputs):
+def errors(inputs_error, outputs_error):
     error = 0
-    for t1, t2 in zip(computedOutputs, testOutputs):
-        error += (t1 - t2) ** 2
-    return error / len(testOutputs)
+    for i in range(len(inputs_error)):
+        error += pow((inputs_error[i] - outputs_error[i]), 2)
+    return (1 / len(inputs_error)) * error
 
 
-def runIrisFlowers():
-    nonShuffledInputs, nonShuffledOutputs = readDataIrisFlowers()
-    indexes = random.sample(range(len(nonShuffledInputs)), len(nonShuffledInputs))
+def runIrisFlowersCode():
+    print("\nIris Flowers with code\n")
 
-    inputs = [nonShuffledInputs[i] for i in indexes]
-    outputs = [nonShuffledOutputs[i] for i in indexes]
+    inputs, outputs = readDataCode()
 
-    count = 0
-    for i in inputs:
-        count = count + 1
+    inputTrain, outputTrain, inputTest, outputTest = splitData(inputs, outputs)
 
-    indexes2 = [i for i in range(len([inputs]))]
+    f1 = normalisationIrisFlowers([x[0] for x in inputTrain])
+    f2 = normalisationIrisFlowers([x[1] for x in inputTrain])
+    trainInputs = [[f11, f22] for f11, f22 in zip(f1, f2)]
 
-    trainSample = np.random.choice(2, int(0.8 * count), replace=True)
-    testSample = [i for i in indexes if not i in trainSample]
+    f1 = normalisationIrisFlowers([x[0] for x in inputTest])
+    f2 = normalisationIrisFlowers([x[1] for x in inputTest])
+    testInputs = [[f11, f22] for f11, f22 in zip(f1, f2)]
 
-    trainInputs = [inputs[i] for i in trainSample]
-    trainOutputs = [outputs[i] for i in trainSample]
+    result1 = LogisticRegression()
+    trainOutputsOne = [1 if el == 0 else 0 for el in outputTrain]
+    testOutputsOne = [1 if el == 0 else 0 for el in outputTest]
+    result1.fit(trainInputs, trainOutputsOne)
+    OutputsOne = result1.prediction(testInputs)
+    errorOne = errors(OutputsOne, testOutputsOne)
 
-    testInputs = [inputs[i] for i in testSample]
-    testOutputs = [outputs[i] for i in testSample]
+    result2 = LogisticRegression()
+    trainOutputsTwo = [1 if el == 1 else 0 for el in outputTrain]
+    testOutputsTwo = [1 if el == 1 else 0 for el in outputTest]
+    result2.fit(trainInputs, trainOutputsTwo)
+    OutputsTwo = result2.prediction(testInputs)
+    errorTwo = errors(OutputsTwo, testOutputsTwo)
 
-    # using developed code (variant 2)
-    classifier = LogisticRegression()
+    result3 = LogisticRegression()
+    trainOutputsThree = [1 if el == 2 else 0 for el in outputTrain]
+    testOutputsThree = [1 if el == 2 else 0 for el in outputTest]
+    result3.fit(trainInputs, trainOutputsThree)
+    OutputsThree = result3.prediction(testInputs)
+    errorThree = errors(OutputsThree, testOutputsThree)
 
-    # train the classifier (fit in on the training data)
-    # classifier.fit(trainInputs, trainOutputs)
+    print("Error One: " + str(errorOne))
+    print("Error Two: " + str(errorTwo))
+    print("Error Three: " + str(errorThree))
+    print()
+    print("Outputs One: " + str(OutputsOne))
+    print("Outputs Two: " + str(OutputsTwo))
+    print("Outputs Three: " + str(OutputsThree))
+    print()
+    print("Test: " + str(testOutputsTwo))
 
-    # parameters of the linear repressor
-    # w0, w1, w2 = classifier.intercept_, classifier.coefficient_[0], classifier.coefficient_[1]
-    # print('\nClassification model iris flowers: y(feat1, feat2) = ', w0, ' + ', w1, ' * feat1 + ', w2, ' * feat2')
+    # plot
+    plotTestIrisFlowers1(testInputs, outputTest)
 
-    # makes predictions for test data (by tool) (variant 2)
-    # computedTestOutputs = classifier.prediction(testInputs)
-
-    # error = 0.0
-    # for t1, t2 in zip(computedTestOutputs, testOutputs):
-    #     if t1 != t2:
-    #         error += 1
-    # error = error / len(testOutputs)
-    # print("Classification error (manual) iris flowers: ", error)
-
-    # error = 1 - accuracy_score(testOutputs, computedTestOutputs)
-    # print("Classification error (tool) iris flowers : ", error)
-
-    trainInputs = []
-    trainOutputs = []
-
-    testInputs = []
-    testOutputs = []
-
-    RLForOne = None
-    RLForTwo = None
-    RLForThree = None
-
-    sum = 99999
-    start = 0
-    finish = 0
-
-    # cross with validation
-    for i in range(5):
-
-        finish = start + len(outputs) / 5
-
-        nonNormalisedTestInputs = inputs[int(start):int(finish)]
-        nonNormalisedTrainInputs = inputs[:int(start)] + inputs[int(finish):]
-
-        testOutputs = outputs[int(start):int(finish)]
-        trainOutputs = outputs[:int(start)] + outputs[int(finish):]
-
-        mean1, stDev1, features1 = statisticalNormalisation([el[0] for el in nonNormalisedTrainInputs])
-        mean2, stDev2, features2 = statisticalNormalisation([el[1] for el in nonNormalisedTrainInputs])
-        trainInputs = [[feat1, feat2] for feat1, feat2 in zip(features1, features2)]
-
-        testFeatures1 = normaliseTestData([el[0] for el in nonNormalisedTestInputs], mean1, stDev1)
-        testFeatures2 = normaliseTestData([el[1] for el in nonNormalisedTestInputs], mean2, stDev2)
-        testInputs = [[feat1, feat2] for feat1, feat2 in zip(testFeatures1, testFeatures2)]
-
-        regressionOne = LogisticRegression()
-        regressionTwo = LogisticRegression()
-        regressionThree = LogisticRegression()
-
-        trainOutputsForOne = [1 if el == "Iris-setosa" else 0 for el in trainOutputs]
-        trainOutputsForTwo = [1 if el == "Iris-versicolor" else 0 for el in trainOutputs]
-        trainOutputsForThree = [1 if el == "Iris-virginica" else 0 for el in trainOutputs]
-
-        testOutputsForOne = [1 if el == "Iris-setosa" else 0 for el in testOutputs]
-        testOutputsForTwo = [1 if el == "Iris-versicolor" else 0 for el in testOutputs]
-        testOutputsForThree = [1 if el == "Iris-virginica" else 0 for el in testOutputs]
-
-        regressionOne.fit(trainInputs, trainOutputsForOne)
-        regressionTwo.fit(trainInputs, trainOutputsForTwo)
-        regressionThree.fit(trainInputs, trainOutputsForThree)
-
-        computedOutputsForOne = regressionOne.prediction(testInputs)
-        computedOutputsForTwo = regressionTwo.prediction(testInputs)
-        computedOutputsForThree = regressionThree.prediction(testInputs)
-
-        errorForOne = computeError(computedOutputsForOne, testOutputsForOne)
-        errorForTwo = computeError(computedOutputsForTwo, testOutputsForTwo)
-        errorForThree = computeError(computedOutputsForThree, testOutputsForThree)
-
-        if sum > errorForOne + errorForTwo + errorForThree:
-            sum = errorForOne + errorForTwo + errorForThree
-            TrainInputs = trainInputs
-            TestInputs = testInputs
-            TrainOutputs = trainOutputs
-            TestOutputs = testOutputs
-            RLForOne = regressionOne
-            RLForTwo = regressionTwo
-            RLForThree = regressionThree
-
-        start = finish
-
-    # plot the train iris flowers
-    # plotTrainIrisFlowers(TrainInputs, TrainOutputs)
-
-    # plot the test iris flowers
-    # plotTestIrisFlowers(TestInputs, TestOutputs, RLForOne, RLForTwo, RLForThree)
+    plotTestIrisFlowers2(testInputs, outputTest, OutputsOne, OutputsTwo, OutputsThree)
 
 
-runIrisFlowers()
+runIrisFlowersCode()
+
+
+# with tool
+def runIrisFlowersTool():
+
+    print("\nIris Flowers with tool\n")
+
+    inputs, outputs = readDataTool()
+    inputTrain, outputTrain, inputTest, outputTest = splitData(inputs, outputs)
+
+    # normalise the dates
+    scaler = StandardScaler()
+    if not isinstance(inputTrain[0], list):
+        inputTrain = [[d] for d in inputTrain]
+        inputTest = [[d] for d in inputTest]
+
+        scaler.fit(inputTrain)
+        normalisedTrainInput = scaler.transform(inputTrain)
+        normalisedTestInput = scaler.transform(inputTest)
+
+        # decode from list
+        normalisedTrainInput = [el[0] for el in normalisedTrainInput]
+        normalisedTestInput = [el[0] for el in normalisedTestInput]
+
+    else:
+        scaler.fit(inputTrain)
+        normalisedTrainInput = scaler.transform(inputTrain)
+        normalisedTestInput = scaler.transform(inputTest)
+
+    # normalised data: normalisedTrainInput, normalisedTestInput
+
+    logisticRegressionTool = linear_model.LogisticRegression(max_iter=1000)
+    logisticRegressionTool.fit(normalisedTrainInput, outputTrain)
+
+    w0, w1, w2, w3, w4 = logisticRegressionTool.intercept_[0], logisticRegressionTool.coef_[0][0], \
+                         logisticRegressionTool.coef_[0][1], logisticRegressionTool.coef_[0][2], \
+                         logisticRegressionTool.coef_[0][3]
+
+    print('Model SETOSA:  w0 = ', w0, ' w1 = ', w1, ' w2 = ', w2, ' w3 = ', w3, ' w4 = ', w4)
+
+    w0, w1, w2, w3, w4 = logisticRegressionTool.intercept_[1], logisticRegressionTool.coef_[1][0], \
+                         logisticRegressionTool.coef_[1][1], logisticRegressionTool.coef_[1][2], \
+                         logisticRegressionTool.coef_[1][3]
+
+    print('Model VERSICOLOR:  w0 = ', w0, ' w1 = ', w1, ' w2 = ', w2, ' w3 = ', w3, ' w4 = ', w4)
+    w0, w1, w2, w3, w4 = logisticRegressionTool.intercept_[2], logisticRegressionTool.coef_[2][0], \
+                         logisticRegressionTool.coef_[2][1], logisticRegressionTool.coef_[2][2], \
+                         logisticRegressionTool.coef_[2][3]
+
+    print('Model VIRGINICA:  w0 = ', w0, ' w1 = ', w1, ' w2 = ', w2, ' w3 = ', w3, ' w4 = ', w4)
+
+    print()
+    print('Prediction (tool): ', logisticRegressionTool.predict(normalisedTestInput))
+    print("Accuracy (tool): ", accuracy_score(outputTest, logisticRegressionTool.predict(normalisedTestInput)))
+    error = 1 - accuracy_score(outputTest, logisticRegressionTool.predict(normalisedTestInput))
+    print("Classification Error (tool): ", error)
+
+
+runIrisFlowersTool()
+
+
