@@ -1,11 +1,45 @@
-def readDataIrisFlowers():
-    inputs = []
-    outputs = []
+from sklearn.datasets import load_iris
+import numpy as np
 
-    f = open("Data/iris.data", "r")
-    for line in f:
-        x1, aux1, x2, aux2, output = line.split(',')
-        inputs.append([float(x1), float(x2)])
-        outputs.append(output[0:-1])
+
+def readDataCode():
+    data = load_iris()
+    inputs = data['data']
+    outputs = data['target']
+    outputNames = data['target_names']
+    featuresNames = list(data['feature_names'])
+
+    inputs = [[feat[featuresNames.index('sepal length (cm)')], feat[featuresNames.index('petal length (cm)')]] for feat
+              in inputs]
 
     return inputs, outputs
+
+
+def readDataTool():
+    data = load_iris()
+    inputs = data['data']
+    outputs = data['target']
+    outputNames = data['target_names']
+    featuresNames = list(data['feature_names'])
+
+    inputs = [[feat[featuresNames.index('sepal length (cm)')], feat[featuresNames.index('sepal width (cm)')],
+               feat[featuresNames.index('petal length (cm)')], feat[featuresNames.index('petal width (cm)')]] for feat
+              in inputs]
+
+    return inputs, outputs
+
+
+def splitData(inputs, outputs):
+    np.random.seed(5)
+    indexes = [i for i in range(len(inputs))]
+    trainSample = np.random.choice(indexes, int(0.8 * len(inputs)), replace=False)
+    validationSample = [i for i in indexes if not i in trainSample]
+
+    trainInputs = [inputs[i] for i in trainSample]
+    trainOutputs = [outputs[i] for i in trainSample]
+
+    validationInputs = [inputs[i] for i in validationSample]
+    validationOutputs = [outputs[i] for i in validationSample]
+
+    return trainInputs, trainOutputs, validationInputs, validationOutputs
+
